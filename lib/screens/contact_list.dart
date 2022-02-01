@@ -1,26 +1,26 @@
-import 'package:bytebank/database/app_database.dart';
 import 'package:bytebank/database/dao/contact_dao.dart';
-import 'package:bytebank/models/Contact.dart';
-import 'package:bytebank/screens/form_contact.dart';
+import 'package:bytebank/models/contact.dart';
+import 'package:bytebank/screens/contact_form.dart';
+import 'package:bytebank/screens/transaction_form.dart';
+import 'package:bytebank/widgets/progress.dart';
 import 'package:flutter/material.dart';
-import 'package:bytebank/widgets/item_contact.dart';
+import 'package:bytebank/widgets/contact_item.dart';
 
-class ListContactsScreen extends StatefulWidget {
-  ListContactsScreen({Key? key}) : super();
+class ListTransferScreen extends StatefulWidget {
+  ListTransferScreen({Key? key}) : super();
 
   @override
-  State<ListContactsScreen> createState() => _ListContactsScreenState();
+  State<ListTransferScreen> createState() => _ListTransferScreenState();
 }
 
-class _ListContactsScreenState extends State<ListContactsScreen> {
+class _ListTransferScreenState extends State<ListTransferScreen> {
   final ContactDao _dao = ContactDao();
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contacts'),
+        title: const Text('Transfer'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: FutureBuilder<List<Contact>>(
@@ -31,28 +31,34 @@ class _ListContactsScreenState extends State<ListContactsScreen> {
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
               {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      const Text('Loading'),
-                    ],
-                  ),
-                );
+                return const Progress();
               }
             case ConnectionState.done:
               {
-                List<dynamic> contacts = snapshot.data as List<dynamic>;
+                if (snapshot.data == null) {
+                  return const Center(
+                    child: Text('List Contact Empty'),
+                  );
+                }
+
+                List<Contact> contacts = snapshot.data as List<Contact>;
+
                 return ListView.builder(
                   scrollDirection: Axis.vertical,
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     Contact contact = contacts[index];
-                    return ItemContact(contact: contact);
+                    return ItemContact(
+                      contact: contact,
+                      onClick: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) {
+                            return TransactionForm(contact);
+                          }),
+                        );
+                      },
+                    );
                   },
                   itemCount: contacts.length,
                 );
